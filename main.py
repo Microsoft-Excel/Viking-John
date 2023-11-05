@@ -1,5 +1,6 @@
 import asyncio
 import os
+import random
 
 import discord
 from discord import Interaction
@@ -15,6 +16,7 @@ class John(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
+        intents.voice_states = True
         super().__init__(
             command_prefix='v!',
             intents=intents,
@@ -41,6 +43,27 @@ async def main():
     @john.tree.command(name="test", description="Test if Viking John is working!")
     async def test(interaction: Interaction):
         await interaction.response.send_message("Yep, it works")
+
+    @john.tree.command(name="pirate", description="That's got to be the worst pirate I've ever seen.")
+    async def pirate(interaction: Interaction):
+        if not interaction.user.voice:
+            await interaction.response.send_message("You must be in a voice channel to do this!")
+            return
+        
+        voicelines = [
+            "Setting sail!",
+            "Please don't die to a sea serpent.",
+            "That's a lot of iron you have there, would be a shame if there was a sea serpent around...",
+            "Arr!",
+            "I'm a viking, not a pirate!",
+            "That's got to be the worst pirate I've ever seen."
+        ]
+
+        await interaction.response.send_message(voicelines[random.randint(0, len(voicelines) - 1)])
+        channel = interaction.user.voice.channel
+        vc = await channel.connect(reconnect=True, self_deaf=True)
+        source = discord.FFmpegOpusAudio("assets/sound/pirateTheme.mp3")
+        vc.play(source=source)
 
     print("Starting Viking John...")
     async with john:
